@@ -5,7 +5,7 @@ import sys
 from gsp import GSP
 from util import argmax_index
 
-class BBAgent:
+class Chandbb:
     """Balanced bidding agent"""
     def __init__(self, id, value, budget):
         self.id = id
@@ -13,7 +13,7 @@ class BBAgent:
         self.budget = budget
 
     def initial_bid(self, reserve):
-        return self.value / 2
+        return self.value
 
 
     def slot_info(self, t, history, reserve):
@@ -38,6 +38,8 @@ class BBAgent:
             
         info = map(compute, range(len(clicks)))
 #        sys.stdout.write("slot info: %s\n" % info)
+        if self.id == 0:
+            print info, self.id, self.value
         return info
 
 
@@ -50,7 +52,20 @@ class BBAgent:
         returns a list of utilities per slot.
         """
         # TODO: Fill this in
-        utilities = []   # Change this
+        info = self.slot_info(t, history, reserve)
+        prev_round = history.round(t-1)
+
+        clicks = prev_round.clicks
+        norm = max(clicks)
+        pos = map(lambda c: float(c)/norm, clicks)
+
+
+        utilities = []
+
+        for i in range(len(info)):
+            (s, mn, mx) = info[i]
+            exp_util = pos[i] * (self.value - mn)
+            utilities.append(exp_util)
 
         
         return utilities
@@ -81,8 +96,16 @@ class BBAgent:
         prev_round = history.round(t-1)
         (slot, min_bid, max_bid) = self.target_slot(t, history, reserve)
 
-        # TODO: Fill this in.
-        bid = 0  # change this
+        clicks = prev_round.clicks
+        norm = max(clicks)
+        pos = map(lambda c: float(c)/norm, clicks)
+
+        if slot == 0:
+            bid = self.value
+        else:
+            balance_value = self.value - (pos[slot]/pos[slot-1]) * (self.value - min_bid)
+            bid = min(self.value, balance_value)
+
         
         return bid
 
