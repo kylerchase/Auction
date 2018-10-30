@@ -38,8 +38,8 @@ class Chandbb:
             
         info = map(compute, range(len(clicks)))
 #        sys.stdout.write("slot info: %s\n" % info)
-        if self.id == 0:
-            print info, self.id, self.value
+        # if self.id == 0:
+        #     print info, self.id, self.value
         return info
 
 
@@ -103,7 +103,7 @@ class Chandbb:
         if slot == 0:
             bid = self.value
         else:
-            balance_value = self.value - (pos[slot]/pos[slot-1]) * (self.value - min_bid)
+            balance_value = self.value - ((pos[slot]/pos[slot-1]) * (self.value - min_bid))
             bid = min(self.value, balance_value)
 
         
