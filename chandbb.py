@@ -13,7 +13,7 @@ class Chandbb:
         self.budget = budget
 
     def initial_bid(self, reserve):
-        return self.value
+        return self.value/2
 
 
     def slot_info(self, t, history, reserve):
