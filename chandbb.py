@@ -56,15 +56,14 @@ class Chandbb:
         prev_round = history.round(t-1)
 
         clicks = prev_round.clicks
-        norm = max(clicks)
-        pos = map(lambda c: float(c)/norm, clicks)
-
+        # norm = max(clicks)
+        # pos = map(lambda c: float(c)/norm, clicks)
 
         utilities = []
 
         for i in range(len(info)):
             (s, mn, mx) = info[i]
-            exp_util = pos[i] * (self.value - mn)
+            exp_util = clicks[i] * (self.value - mn)
             utilities.append(exp_util)
 
         
@@ -106,7 +105,7 @@ class Chandbb:
             balance_value = self.value - ((pos[slot]/pos[slot-1]) * (self.value - min_bid))
             bid = min(self.value, balance_value)
 
-        
+        # print("Agent {} bids {}\n".format(self.id, bid))
         return bid
 
     def __repr__(self):

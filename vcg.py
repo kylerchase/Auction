@@ -75,7 +75,7 @@ class VCG:
             return map(lambda (x,y): x/y, zip(totals, slot_clicks))
 
         per_click_payments = norm(
-            [total_payment(k) for k in range(len(allocation))])
+            [int(total_payment(k)) for k in range(len(allocation))])
         
         return (list(allocation), per_click_payments)
 

@@ -5,12 +5,15 @@ import sys
 from gsp import GSP
 from util import argmax_index
 
-class BBAgent:
+class Chandbudget:
     """Balanced bidding agent"""
     def __init__(self, id, value, budget):
         self.id = id
         self.value = value
         self.budget = budget
+        self.remaining_budget = budget
+        self.TOTAL_NUM_ROUNDS = 48
+        self.high_alpha = 1.75
 
     def initial_bid(self, reserve):
         return self.value / 2
@@ -49,10 +52,21 @@ class BBAgent:
 
         returns a list of utilities per slot.
         """
-        # TODO: Fill this in
-        utilities = []   # Change this
+        # Balanced Budget computation
+        info = self.slot_info(t, history, reserve)
+        prev_round = history.round(t - 1)
 
-        
+        clicks = prev_round.clicks
+        norm = max(clicks)
+        pos = map(lambda c: float(c) / norm, clicks)
+
+        utilities = []
+
+        for i in range(len(info)):
+            (s, mn, mx) = info[i]
+            exp_util = pos[i] * (self.value - mn)
+            utilities.append(exp_util)
+
         return utilities
 
     def target_slot(self, t, history, reserve):
@@ -78,12 +92,44 @@ class BBAgent:
         # (p_x is the price/click in slot x)
         # If s*_j is the top slot, bid the value v_j
 
+        # TODO: Fill this in.
+
         prev_round = history.round(t-1)
+
         (slot, min_bid, max_bid) = self.target_slot(t, history, reserve)
 
-        # TODO: Fill this in.
-        bid = 0  # change this
-        
+        # Compute remaining budget
+        self.remaining_budget = self.budget - history.agents_spent[self.id]
+
+        clicks = prev_round.clicks
+        norm = max(clicks)
+        pos = map(lambda c: float(c) / norm, clicks)
+
+        if slot == 0:
+            bid = self.value
+        else:
+            balance_value = self.value - ((pos[slot] / pos[slot - 1]) * (self.value - min_bid))
+            bid = min(self.value, balance_value)
+
+        # Calculate approximate per-round, per-click budget
+        budget_per_round = self.remaining_budget/(self.TOTAL_NUM_ROUNDS - t)
+        budget_per_click = budget_per_round/(clicks[slot])
+
+        # print("Computed a budget per click of {} and currently have bid {}.\n".format(budget_per_click, bid))
+        # print("High alpha is {}\n".format(self.high_alpha))
+
+        # Always bid below high_alpha * per_round remaining price, i.e. in case self.balance_value < remaining
+        if bid > self.high_alpha * budget_per_click:
+            bid = self.high_alpha * budget_per_click
+        # elif bid < self.low_alpha * budget_per_click:
+        #     bid = self.low_alpha * budget_per_click
+
+        # GO OUT WITH A BANG: estimate if this bid will be your last, based on previous
+        # number of clicks in a slot. If it is, bid your value while you're still eligible
+        if self.remaining_budget - (bid * clicks[slot]) <= 0:
+            bid = self.value
+
+        # print("Agent {} has {} budget remaining.\n".format(self.id, self.remaining_budget))
         return bid
 
     def __repr__(self):
